@@ -81,14 +81,14 @@ func main() {
 		}
 
 		if newItem.Name != "" {
-			_, err := db.Exec("INSERT INTO items (name, action) VALUES ('" + newItem.Name + "','');")
+			_, err := db.Exec("INSERT INTO items (name, action) VALUES (?,'')", newItem.Name)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("Error creating item: %q", err))
 			}
 			c.IndentedJSON(http.StatusCreated, newItem)
 		} else if newItem.Id > 0 && newItem.Action != "" {
-			_, err := db.Exec("UPDATE items set action = ? where id = ?", newItem.Action, newItem.Id)
+			_, err := db.Exec(`UPDATE items set action = ? where id = ?`, newItem.Action, newItem.Id)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("Error updating item: %q", err))
