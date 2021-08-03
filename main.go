@@ -99,7 +99,7 @@ func main() {
 
 	router.DELETE("/items", func(c *gin.Context) {
 		c.String(http.StatusOK, "Deleting actioned items\n")
-		if _, err := db.Exec("DELETE FROM items WHERE action NOT NULL;"); err != nil {
+		if _, err := db.Exec("DELETE FROM items WHERE action NOT NULL"); err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("Error deleting actioned items: %q", err))
 			return
