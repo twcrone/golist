@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -16,16 +15,6 @@ type Item struct {
 	Id     uint   `json:"id"`
 	Name   string `json:"name"`
 	Action string `json:"action"`
-}
-
-func repeatHandler(r int) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		var buffer bytes.Buffer
-		for i := 0; i < r; i++ {
-			buffer.WriteString("Hello Geeks!\n")
-		}
-		c.String(http.StatusOK, buffer.String())
-	}
 }
 
 func listItems(db *sql.DB) gin.HandlerFunc {
@@ -81,14 +70,14 @@ func main() {
 		}
 
 		if newItem.Name != "" {
-			_, err := db.Exec("INSERT INTO items (name, action) VALUES (?,'')", newItem.Name)
+			_, err := db.Exec(`INSERT INTO items (name, action) VALUES ($1, $2)`, newItem.Name, newItem.Action)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("Error creating item: %q", err))
 			}
 			c.IndentedJSON(http.StatusCreated, newItem)
 		} else if newItem.Id > 0 && newItem.Action != "" {
-			_, err := db.Exec(`UPDATE items set action = ? where id = ?`, newItem.Action, newItem.Id)
+			_, err := db.Exec(`UPDATE items set action = $1 where id = $2`, newItem.Action, newItem.Id)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("Error updating item: %q", err))
@@ -99,7 +88,7 @@ func main() {
 
 	router.DELETE("/items", func(c *gin.Context) {
 		c.String(http.StatusOK, "Deleting actioned items\n")
-		if _, err := db.Exec("DELETE FROM items WHERE action NOT NULL"); err != nil {
+		if _, err := db.Exec("DELETE FROM items WHERE action <> ''"); err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("Error deleting actioned items: %q", err))
 			return
