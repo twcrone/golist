@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"database/sql"
 	"fmt"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-
 	"github.com/gin-gonic/gin"
 	_ "github.com/heroku/x/hmetrics/onload"
 	_ "github.com/lib/pq"
+	"log"
+	"net/http"
+	"os"
 )
 
 type Item struct {
@@ -66,12 +64,6 @@ func main() {
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
-	tStr := os.Getenv("REPEAT")
-	repeat, err := strconv.Atoi(tStr)
-	if err != nil {
-		log.Printf("error converting $REPEAT to an int: %q - Using default\n", err)
-		repeat = 5
-	}
 	db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
 	if err != nil {
 		log.Fatalf("error opening database: %q", err)
@@ -79,33 +71,37 @@ func main() {
 
 	router := gin.New()
 	router.Use(gin.Logger())
-	router.LoadHTMLGlob("templates/*.tmpl.html")
-	router.Static("/static", "static")
+	router.GET("/items", listItems(db))
 
-	router.GET("/old-index", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "index.tmpl.html", nil)
-	})
+	router.POST("/items", func(c *gin.Context) {
+		var newItem Item
 
-	router.GET("/repeat", repeatHandler(repeat))
-
-	router.GET("/", listItems(db))
-
-	router.GET("/create", func(c *gin.Context) {
-		name := c.Request.URL.Query().Get("name")
-		c.String(http.StatusOK, "Name is "+name+"\n")
-		if _, err := db.Exec("INSERT INTO items (name, action) VALUES ('" + name + "','');"); err != nil {
-			c.String(http.StatusInternalServerError,
-				fmt.Sprintf("Error creating item: %q", err))
+		if err := c.BindJSON(&newItem); err != nil {
 			return
+		}
+
+		if newItem.Name != "" {
+			_, err := db.Exec("INSERT INTO items (name, action) VALUES ('" + newItem.Name + "','');")
+			if err != nil {
+				c.String(http.StatusInternalServerError,
+					fmt.Sprintf("Error creating item: %q", err))
+			}
+			c.IndentedJSON(http.StatusCreated, newItem)
+		} else if newItem.Id > 0 && newItem.Action != "" {
+			_, err := db.Exec("UPDATE items set action = ? where id = ?", newItem.Action, newItem.Id)
+			if err != nil {
+				c.String(http.StatusInternalServerError,
+					fmt.Sprintf("Error updating item: %q", err))
+			}
+			c.IndentedJSON(http.StatusOK, newItem)
 		}
 	})
 
-	router.GET("/delete", func(c *gin.Context) {
-		id := c.Request.URL.Query().Get("id")
-		c.String(http.StatusOK, "Deleting player with ID = "+id+"\n")
-		if _, err := db.Exec("DELETE FROM players WHERE id=" + id + ";"); err != nil {
+	router.DELETE("/items", func(c *gin.Context) {
+		c.String(http.StatusOK, "Deleting actioned items\n")
+		if _, err := db.Exec("DELETE FROM items WHERE action NOT NULL;"); err != nil {
 			c.String(http.StatusInternalServerError,
-				fmt.Sprintf("Error deleting player: %q", err))
+				fmt.Sprintf("Error deleting actioned items: %q", err))
 			return
 		}
 	})
