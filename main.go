@@ -24,15 +24,15 @@ func repeatHandler(r int) gin.HandlerFunc {
 	}
 }
 
-func listPlayers(db *sql.DB) gin.HandlerFunc {
+func listItems(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		_, err := db.Exec("CREATE TABLE IF NOT EXISTS players (id serial PRIMARY KEY, name varchar(50), email varchar(255));")
+		_, err := db.Exec("CREATE TABLE IF NOT EXISTS items (id serial PRIMARY KEY, name varchar(50), action varchar(10));")
 		if err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("error creating database table: %q", err))
 			return
 		}
-		rows, err := db.Query("SELECT id, name, email from players;")
+		rows, err := db.Query("SELECT id, name, action from items;")
 		if err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("error fetching table rows: %q", err))
@@ -43,15 +43,15 @@ func listPlayers(db *sql.DB) gin.HandlerFunc {
 			var (
 				id    uint
 				name  string
-				email string
+				action string
 			)
-			err := rows.Scan(&id, &name, &email)
+			err := rows.Scan(&id, &name, &action)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("error scanning table row: %q", err))
 				return
 			}
-			c.String(http.StatusOK, fmt.Sprintf("%d\t->\t%s\t(%s)\n", id, name, email))
+			c.String(http.StatusOK, fmt.Sprintf("<li>%s (%d) %s</li>", name, id, action))
 		}
 	}
 }
@@ -84,16 +84,14 @@ func main() {
 
 	router.GET("/repeat", repeatHandler(repeat))
 
-	router.GET("/", listPlayers(db))
+	router.GET("/", listItems(db))
 
 	router.GET("/create", func(c *gin.Context) {
 		name := c.Request.URL.Query().Get("name")
-		c.String(http.StatusOK, "Name is "+name+"\n")
-		email := c.Request.URL.Query().Get("email")
-		c.String(http.StatusOK, "Email is "+email+"\n")
-		if _, err := db.Exec("INSERT INTO players (name, email) VALUES ('" + name + "','" + email + "');"); err != nil {
+		c.String(http.StatusOK, "Name is " + name + "\n")
+		if _, err := db.Exec("INSERT INTO items (name, action) VALUES ('" + name + "','');"); err != nil {
 			c.String(http.StatusInternalServerError,
-				fmt.Sprintf("Error creating player: %q", err))
+				fmt.Sprintf("Error creating item: %q", err))
 			return
 		}
 	})

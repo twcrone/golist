@@ -1,12 +1,10 @@
 {
-  "name": "RPG Geeks",
-  "description": "Simple Go web app for tracking rpg players",
+  "name": "TC List",
+  "description": "Simple Go web app for lists",
   "keywords": [
-    "rpg",
-    "go",
-    "geek",
-    "crone"
+    "list",
+    "go"
   ],
-  "website": "https://github.com/twcrone/rpggeeks",
-  "repository": "https://github.com/twcrone/rpggeeks"
+  "website": "https://github.com/twcrone/tclist",
+  "repository": "https://github.com/twcrone/tclist"
 }

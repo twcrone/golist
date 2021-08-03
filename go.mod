@@ -1,4 +1,4 @@
-module github.com/heroku/golist
+module github.com/heroku/tclist
 
 go 1.12
 

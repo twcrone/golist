@@ -1,1 +1,1 @@
-web: bin/rpggeeks
+web: bin/tclist
