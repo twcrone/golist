@@ -1,0 +1,12 @@
+{
+  "name": "RPG Geeks",
+  "description": "Simple Go web app for tracking rpg players",
+  "keywords": [
+    "rpg",
+    "go",
+    "geek",
+    "crone"
+  ],
+  "website": "https://github.com/twcrone/rpggeeks",
+  "repository": "https://github.com/twcrone/rpggeeks"
+}
