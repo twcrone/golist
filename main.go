@@ -15,9 +15,9 @@ import (
 )
 
 type Item struct {
-	id    uint		`json:"id"`
-	name  string	`json:"title"`
-	action string	`json:"action"`
+	Id     uint   `json:"id"`
+	Name   string `json:"name"`
+	Action string `json:"action"`
 }
 
 func repeatHandler(r int) gin.HandlerFunc {
@@ -48,7 +48,7 @@ func listItems(db *sql.DB) gin.HandlerFunc {
 		var items []Item
 		for rows.Next() {
 			var item Item
-			err := rows.Scan(&item.id, &item.name, &item.action)
+			err := rows.Scan(&item.Id, &item.Name, &item.Action)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("error scanning table row: %q", err))
@@ -92,7 +92,7 @@ func main() {
 
 	router.GET("/create", func(c *gin.Context) {
 		name := c.Request.URL.Query().Get("name")
-		c.String(http.StatusOK, "Name is " + name + "\n")
+		c.String(http.StatusOK, "Name is "+name+"\n")
 		if _, err := db.Exec("INSERT INTO items (name, action) VALUES ('" + name + "','');"); err != nil {
 			c.String(http.StatusInternalServerError,
 				fmt.Sprintf("Error creating item: %q", err))
