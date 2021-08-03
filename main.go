@@ -14,6 +14,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type Item struct {
+	id    uint		`json:"id"`
+	name  string	`json:"title"`
+	action string	`json:"action"`
+}
+
 func repeatHandler(r int) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var buffer bytes.Buffer
@@ -39,20 +45,18 @@ func listItems(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 		defer rows.Close()
+		items := []Item{}
 		for rows.Next() {
-			var (
-				id    uint
-				name  string
-				action string
-			)
-			err := rows.Scan(&id, &name, &action)
+			var item Item
+			err := rows.Scan(&item.id, &item.id, &item.action)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("error scanning table row: %q", err))
 				return
 			}
-			c.String(http.StatusOK, fmt.Sprintf("<li>%s (%d) %s</li>", name, id, action))
+			items = append(items, item)
 		}
+		c.IndentedJSON(http.StatusOK, items)
 	}
 }
 
