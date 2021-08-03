@@ -45,10 +45,10 @@ func listItems(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 		defer rows.Close()
-		items := []Item{}
+		var items []Item
 		for rows.Next() {
 			var item Item
-			err := rows.Scan(&item.id, &item.id, &item.action)
+			err := rows.Scan(&item.id, &item.name, &item.action)
 			if err != nil {
 				c.String(http.StatusInternalServerError,
 					fmt.Sprintf("error scanning table row: %q", err))
